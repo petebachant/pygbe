@@ -17,7 +17,7 @@
 # To delete the container:
 # `docker rm pygbe`
 
-FROM nvidia/cuda:11.2.2-cudnn8-runtime-ubuntu16.04
+FROM cogniac/nvidia-cuda:8.0-cudnn7-devel-ubuntu16.04-20190822
 
 # Install basic requirements
 RUN apt-get update && \
@@ -41,9 +41,9 @@ RUN conda install -yq \
     requests=2.14.2 \
     pytest=3
 
-# RUN pip install --no-cache-dir -q clint==0.5.1
+RUN conda update pip -yq
 
-RUN ls /usr/local
+RUN pip install --no-cache-dir -q mako==1.1.6 clint==0.5.1
 
 # Install PyCUDA.
 RUN VERSION=2017.1.1 && \
@@ -59,8 +59,8 @@ RUN VERSION=2017.1.1 && \
     make install
 
 # Install PyGBe
-COPY pygbe /opt/pygbe
+COPY pygbe /opt/pygbe/pygbe
 COPY setup.py /opt/pygbe
 COPY setup.cfg /opt/pygbe
 COPY versioneer.py /opt/pygbe
-RUN python setup.py install clean
+RUN cd /opt/pygbe && python setup.py install clean
