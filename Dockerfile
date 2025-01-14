@@ -17,37 +17,38 @@
 # To delete the container:
 # `docker rm pygbe`
 
+FROM nvidia/cuda:11.2.2-cudnn8-runtime-ubuntu16.04
 
-FROM nvidia/cuda:8.0-devel-ubuntu16.04
-
-# Install basic requirements.
+# Install basic requirements
 RUN apt-get update && \
-    apt-get install -y wget unzip vim tmux  
+    apt-get install -y wget unzip vim tmux bzip2 tar make ctags
 
 # Install Miniconda.
 RUN FILENAME=Miniconda3-4.3.21-Linux-x86_64.sh && \
-    wget https://repo.continuum.io/miniconda/${FILENAME} -P /tmp && \
+    wget -q https://repo.anaconda.com/miniconda/${FILENAME} -P /tmp && \
     bash /tmp/${FILENAME} -b -p /opt/miniconda && \
     export PATH=/opt/miniconda/bin:$PATH && \
     rm -f /tmp/${FILENAME}
 
-# Add Miniconda to PATH.
-ENV PATH=/opt/miniconda/bin:${PATH}
+ENV PATH="/opt/miniconda/bin:$PATH"
 
 # Install required packages.
-RUN conda install -y numpy=1.13.1 && \
-    conda install -y scipy=0.19.1=np113py36_0 && \
-    conda install -y matplotlib=2.0.2=np113py36_0 && \
-    conda install -y swig=3.0.10 && \
-    conda install -y requests=2.14.2 && \
-    conda install -y pytest=3.5.1 && \
-    pip install clint==0.5.1
+RUN conda install -yq \
+    numpy=1.13.1 \
+    scipy=0.19.1 \
+    matplotlib=2.0.2 \
+    swig=3.0.10 \
+    requests=2.14.2 \
+    pytest=3
 
+# RUN pip install --no-cache-dir -q clint==0.5.1
+
+RUN ls /usr/local
 
 # Install PyCUDA.
 RUN VERSION=2017.1.1 && \
     TARBALL=pycuda-${VERSION}.tar.gz && \
-    wget https://pypi.python.org/packages/b3/30/9e1c0a4c10e90b4c59ca7aa3c518e96f37aabcac73ffe6b5d9658f6ef843/${TARBALL} -P /tmp && \
+    wget -q https://pypi.python.org/packages/b3/30/9e1c0a4c10e90b4c59ca7aa3c518e96f37aabcac73ffe6b5d9658f6ef843/${TARBALL} -P /tmp && \
     PYCUDA_DIR=/opt/pycuda/${VERSION} && \
     mkdir -p ${PYCUDA_DIR} && \
     tar -xzf /tmp/${TARBALL} -C ${PYCUDA_DIR} --strip-components=1 && \
@@ -58,9 +59,8 @@ RUN VERSION=2017.1.1 && \
     make install
 
 # Install PyGBe
-RUN wget https://github.com/barbagroup/pygbe/archive/master.zip -P /tmp && \
-    mkdir -p /opt/pygbe && \
-    unzip /tmp/master.zip -d /opt/pygbe/ && \
-    rm -f /tmp/master.zip && \
-    cd /opt/pygbe/pygbe-master && \
-    python setup.py install clean
+COPY pygbe /opt/pygbe
+COPY setup.py /opt/pygbe
+COPY setup.cfg /opt/pygbe
+COPY versioneer.py /opt/pygbe
+RUN python setup.py install clean
