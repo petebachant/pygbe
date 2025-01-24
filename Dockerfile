@@ -43,7 +43,7 @@ RUN conda install -yq \
 
 RUN conda update pip -yq
 
-RUN pip install --no-cache-dir -q mako==1.1.6 clint==0.5.1
+RUN pip install --no-cache-dir -q mako==1.1.6 clint==0.5.1 pytools==2018.5.2
 
 # Install PyCUDA.
 RUN VERSION=2017.1.1 && \
